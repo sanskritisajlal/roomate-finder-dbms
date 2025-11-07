@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 export default function MyListings() {
@@ -6,7 +6,12 @@ export default function MyListings() {
   const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [editListing, setEditListing] = useState(null);
-  const [token] = useState(localStorage.getItem("token"));
+  const token = localStorage.getItem("token");
+
+  // ✅ Load listings when page loads
+  useEffect(() => {
+    fetchMyListings();
+  }, []);
 
   const fetchMyListings = async () => {
     try {
@@ -14,7 +19,9 @@ export default function MyListings() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setListings(res.data);
+      console.log("Loaded listings:", res.data);
     } catch (err) {
+      console.error("Error loading listings:", err);
       setError("Failed to load listings");
     }
   };
@@ -26,9 +33,8 @@ export default function MyListings() {
 
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
-
     try {
-      const { listing_id, block } = editListing;
+      const { listing_id } = editListing;
       const { room_type, bed_count, roommates_remaining, cgpa_preference, keywords } = editListing;
 
       await axios.put(
@@ -41,6 +47,7 @@ export default function MyListings() {
       setIsEditing(false);
       setEditListing(null);
     } catch (err) {
+      console.error("Error updating listing:", err);
       setError("Failed to update listing.");
     }
   };
@@ -57,6 +64,7 @@ export default function MyListings() {
       });
       fetchMyListings();
     } catch (err) {
+      console.error("Error deleting listing:", err);
       setError("Could not delete listing");
     }
   };
@@ -104,7 +112,9 @@ export default function MyListings() {
               <input
                 type="number"
                 value={editListing.roommates_remaining}
-                onChange={(e) => setEditListing({ ...editListing, roommates_remaining: e.target.value })}
+                onChange={(e) =>
+                  setEditListing({ ...editListing, roommates_remaining: e.target.value })
+                }
                 required
                 className="border p-2 w-full rounded"
               />
@@ -114,8 +124,10 @@ export default function MyListings() {
               CGPA Preference:
               <input
                 type="text"
-                value={editListing.cgpa_preference}
-                onChange={(e) => setEditListing({ ...editListing, cgpa_preference: e.target.value })}
+                value={editListing.cgpa_preference || ""}
+                onChange={(e) =>
+                  setEditListing({ ...editListing, cgpa_preference: e.target.value })
+                }
                 className="border p-2 w-full rounded"
               />
             </label>
@@ -124,41 +136,55 @@ export default function MyListings() {
               Keywords:
               <input
                 type="text"
-                value={editListing.keywords}
+                value={editListing.keywords || ""}
                 onChange={(e) => setEditListing({ ...editListing, keywords: e.target.value })}
                 className="border p-2 w-full rounded"
               />
             </label>
 
             <div className="flex space-x-3">
-              <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">Save Changes</button>
-              <button type="button" onClick={handleCancelEdit} className="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+              <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
+                Save Changes
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+              >
+                Cancel
+              </button>
             </div>
           </form>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {listings.map((l) => (
-            <div key={l.listing_id} className="bg-white border p-4 rounded-lg shadow">
-              <h3 className="font-bold text-lg mb-1">Block {l.block}</h3>
-              <p>Room Type: {l.room_type}</p>
-              <p>Beds: {l.bed_count}</p>
-              <p>Remaining: {l.roommates_remaining}</p>
-              <p>Status: {l.status}</p>
-              <button
-                onClick={() => handleEdit(l)}
-                className="mt-2 bg-yellow-500 text-white px-4 py-1 rounded"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => deleteListing(l.listing_id)}
-                className="mt-2 bg-red-500 text-white px-4 py-1 rounded"
-              >
-                Delete
-              </button>
-            </div>
-          ))}
+          {listings.length > 0 ? (
+            listings.map((l) => (
+              <div key={l.listing_id} className="bg-white border p-4 rounded-lg shadow">
+                <h3 className="font-bold text-lg mb-1">Block {l.block}</h3>
+                <p>Room Type: {l.room_type}</p>
+                <p>Beds: {l.bed_count}</p>
+                <p>Remaining: {l.roommates_remaining}</p>
+                <p>Status: {l.status}</p>
+                <div className="flex space-x-2 mt-2">
+                  <button
+                    onClick={() => handleEdit(l)}
+                    className="bg-yellow-500 text-white px-3 py-1 rounded"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => deleteListing(l.listing_id)}
+                    className="bg-red-500 text-white px-3 py-1 rounded"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-600">No listings found. Try creating one!</p>
+          )}
         </div>
       )}
     </div>

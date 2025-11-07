@@ -80,10 +80,13 @@ export const createListing = async (req, res) => {
 // ✅ Get my listings
 export const getMyListings = async (req, res) => {
   try {
+    console.log("Fetching listings for owner:", req.user.user_id); // 👈 add this line
     const result = await pool.query(
       "SELECT * FROM listings WHERE owner_id=$1 ORDER BY created_at DESC",
       [req.user.user_id]
     );
+    
+    console.log("Found listings:", result.rows);
     res.json(result.rows);
   } catch (err) {
     console.error("Error loading my listings:", err.message);
