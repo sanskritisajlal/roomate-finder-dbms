@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 
-export default function Login() {
+export default function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -12,9 +12,12 @@ export default function Login() {
     e.preventDefault();
     try {
       const res = await axios.post("http://localhost:5000/api/auth/login", { email, password });
+      console.log("Backend response:", res.data);
       localStorage.setItem("token", res.data.token);
+      if (onLogin) onLogin(res.data.token);  // ✅ tell App.jsx token changed
       navigate("/");
     } catch (err) {
+      console.error("Login error:", err.response ? err.response.data : err.message);
       setError(err.response?.data?.message || "Login failed");
     }
   };

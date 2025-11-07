@@ -6,10 +6,12 @@ import listingRoutes from "./routes/listingRoutes.js";
 import requestRoutes from "./routes/requestRoutes.js";
 
 dotenv.config();
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Register routes
 app.use("/api/auth", authRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api/requests", requestRoutes);
