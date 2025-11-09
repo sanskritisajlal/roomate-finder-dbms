@@ -21,6 +21,16 @@ export const getAllListings = async (req, res) => {
       query += ` AND keywords ILIKE $${params.length}`;
     }
 
+    if (req.query.room_type) {
+  params.push(req.query.room_type);
+  query += ` AND room_type=$${params.length}`;
+}
+if (req.query.bed_count) {
+  params.push(req.query.bed_count);
+  query += ` AND bed_count=$${params.length}`;
+}
+
+
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {

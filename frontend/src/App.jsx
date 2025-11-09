@@ -6,12 +6,13 @@ import Dashboard from "./pages/Dashboard.jsx";
 import CreateListing from "./pages/CreateListing.jsx";
 import MyListings from "./pages/MyListings.jsx";
 import MyRequests from "./pages/MyRequests.jsx";
+import ReceivedRequests from "./pages/ReceivedRequests.jsx"; // ✅ new import
 import Navbar from "./components/Navbar.jsx";
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
 
-  // Refresh token state when localStorage changes
+  // 🔁 Refresh token state when localStorage changes (sync between tabs)
   useEffect(() => {
     const handleStorageChange = () => {
       setToken(localStorage.getItem("token"));
@@ -22,14 +23,42 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      {/* ✅ Show Navbar only when logged in */}
       {token && <Navbar setToken={setToken} />}
+
       <Routes>
-        <Route path="/" element={token ? <Dashboard /> : <Navigate to="/login" />} />
-        <Route path="/login" element={<Login onLogin={(t) => setToken(t)} />} />
+        {/* 🏠 Main Dashboard */}
+        <Route
+          path="/"
+          element={token ? <Dashboard /> : <Navigate to="/login" />}
+        />
+
+        {/* 🔐 Auth */}
+        <Route
+          path="/login"
+          element={<Login onLogin={(t) => setToken(t)} />}
+        />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/create" element={token ? <CreateListing /> : <Navigate to="/login" />} />
-        <Route path="/mylistings" element={token ? <MyListings /> : <Navigate to="/login" />} />
-        <Route path="/myrequests" element={token ? <MyRequests /> : <Navigate to="/login" />} />
+
+        {/* 🏡 Listings */}
+        <Route
+          path="/create"
+          element={token ? <CreateListing /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/mylistings"
+          element={token ? <MyListings /> : <Navigate to="/login" />}
+        />
+
+        {/* 📩 Requests */}
+        <Route
+          path="/myrequests"
+          element={token ? <MyRequests /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/receivedrequests"
+          element={token ? <ReceivedRequests /> : <Navigate to="/login" />}
+        />
       </Routes>
     </BrowserRouter>
   );

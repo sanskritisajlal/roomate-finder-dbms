@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "../utils/axios"; // ✅ Make sure Axios instance has JWT token
 
 export default function CreateListing() {
   const [block, setBlock] = useState("");
@@ -8,28 +9,51 @@ export default function CreateListing() {
   const [cgpa, setCgpa] = useState("");
   const [keywords, setKeywords] = useState("");
   const [city, setCity] = useState("");
+
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Form submit logic here
+    setError("");
+    setSuccess("");
+
+    try {
+      const body = {
+        block,
+        room_type: roomType,
+        bed_count: bedCount,
+        roommates_remaining: roommatesRemaining,
+        cgpa_preference: cgpa,
+        keywords,
+        origin: city,
+      };
+
+      const res = await axios.post("/listings", body);
+
+      setSuccess("✅ Listing created successfully!");
+      // Clear form
+      setBlock(""); setRoomType(""); setBedCount("");
+      setRoommatesRemaining(""); setCgpa("");
+      setKeywords(""); setCity("");
+
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to create listing");
+    }
   };
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-semibold mb-4">Create Listing</h1>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      {error && <p className="text-red-500 mb-3">{error}</p>}
+      {success && <p className="text-green-600 mb-3">{success}</p>}
 
       <form onSubmit={handleSubmit}>
         {/* Block Dropdown (A-Z) */}
         <label className="block mb-4">
           Block:
-          <select
-            value={block}
-            onChange={(e) => setBlock(e.target.value)}
-            required
-            className="border p-2 w-full rounded"
-          >
+          <select value={block} onChange={(e) => setBlock(e.target.value)} required className="border p-2 w-full rounded">
             <option value="">Select Block</option>
             {Array.from({ length: 26 }, (_, i) => (
               <option key={i} value={String.fromCharCode(65 + i)}>
@@ -42,27 +66,17 @@ export default function CreateListing() {
         {/* Room Type */}
         <label className="block mb-4">
           Room Type:
-          <select
-            value={roomType}
-            onChange={(e) => setRoomType(e.target.value)}
-            required
-            className="border p-2 w-full rounded"
-          >
+          <select value={roomType} onChange={(e) => setRoomType(e.target.value)} required className="border p-2 w-full rounded">
             <option value="">Select Room Type</option>
             <option value="AC">AC</option>
             <option value="Non-AC">Non-AC</option>
           </select>
         </label>
 
-        {/* Total Beds */}
+        {/* Bed Count */}
         <label className="block mb-4">
           Total Beds:
-          <select
-            value={bedCount}
-            onChange={(e) => setBedCount(e.target.value)}
-            required
-            className="border p-2 w-full rounded"
-          >
+          <select value={bedCount} onChange={(e) => setBedCount(e.target.value)} required className="border p-2 w-full rounded">
             <option value="">Select Bed Count</option>
             <option value="2">2 Beds</option>
             <option value="3">3 Beds</option>
@@ -75,50 +89,26 @@ export default function CreateListing() {
         {/* Roommates Remaining */}
         <label className="block mb-4">
           Roommates Remaining:
-          <input
-            type="number"
-            value={roommatesRemaining}
-            onChange={(e) => setRoommatesRemaining(e.target.value)}
-            required
-            className="border p-2 w-full rounded"
-          />
+          <input type="number" value={roommatesRemaining} onChange={(e) => setRoommatesRemaining(e.target.value)} required className="border p-2 w-full rounded" />
         </label>
 
-        {/* Optional Fields (cgpa, keywords, city) */}
+        {/* Optional Fields */}
         <label className="block mb-4">
-          CGPA:
-          <input
-            type="text"
-            value={cgpa}
-            onChange={(e) => setCgpa(e.target.value)}
-            className="border p-2 w-full rounded"
-          />
+          CGPA Preference:
+          <input type="text" value={cgpa} onChange={(e) => setCgpa(e.target.value)} className="border p-2 w-full rounded" />
         </label>
 
         <label className="block mb-4">
           Keywords:
-          <input
-            type="text"
-            value={keywords}
-            onChange={(e) => setKeywords(e.target.value)}
-            className="border p-2 w-full rounded"
-          />
+          <input type="text" value={keywords} onChange={(e) => setKeywords(e.target.value)} className="border p-2 w-full rounded" />
         </label>
 
         <label className="block mb-4">
           City:
-          <input
-            type="text"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            className="border p-2 w-full rounded"
-          />
+          <input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="border p-2 w-full rounded" />
         </label>
 
-        <button
-          type="submit"
-          className="bg-blue-500 text-white py-2 px-4 rounded"
-        >
+        <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded">
           Submit Listing
         </button>
       </form>

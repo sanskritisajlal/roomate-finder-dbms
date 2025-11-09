@@ -1,119 +1,60 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+// frontend/src/pages/MyRequests.jsx
+import React, { useEffect, useState } from "react";
+import axios from "../utils/axios";
 
 export default function MyRequests() {
-  const [sentRequests, setSentRequests] = useState([]);
-  const [receivedRequests, setReceivedRequests] = useState([]);
+  const [requests, setRequests] = useState([]);
   const [error, setError] = useState("");
-  const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    loadRequests();
-  }, []);
-
-  const loadRequests = async () => {
+  const fetchRequests = async () => {
     try {
-      const [sentRes, receivedRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/requests/mine", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:5000/api/requests/received", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-      setSentRequests(sentRes.data);
-      setReceivedRequests(receivedRes.data);
-    } catch (err) {
-      console.error("Error loading requests:", err.response?.data || err.message);
-      setError("Failed to load requests");
+      const res = await axios.get("/requests/mine");
+      setRequests(res.data);
+    } catch {
+      setError("Failed to load your requests");
     }
   };
 
   const handleCancel = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/requests/${id}/cancel`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      loadRequests();
-    } catch (err) {
-      console.error("Cancel error:", err.response?.data || err.message);
+      await axios.delete(`/requests/${id}/cancel`);
+      fetchRequests();
+    } catch {
+      alert("Failed to cancel request");
     }
   };
 
-  const handleAccept = async (id) => {
-    await axios.post(
-      `http://localhost:5000/api/requests/${id}/accept`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    loadRequests();
-  };
-
-  const handleReject = async (id) => {
-    await axios.post(
-      `http://localhost:5000/api/requests/${id}/reject`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    loadRequests();
-  };
+  useEffect(() => {
+    fetchRequests();
+  }, []);
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50">
-      <h1 className="text-3xl font-bold mb-6 text-center">My Requests</h1>
-      {error && <p className="text-red-500 text-center">{error}</p>}
+    <div className="p-6">
+      <h1 className="text-2xl font-semibold mb-4">My Sent Requests</h1>
+      {error && <p className="text-red-500">{error}</p>}
 
-      <h2 className="text-xl font-semibold mb-2">Sent Requests</h2>
-      {sentRequests.length === 0 ? (
-        <p>No sent requests yet.</p>
+      {requests.length === 0 ? (
+        <p className="text-gray-600">No requests sent yet.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {sentRequests.map((req) => (
-            <div key={req.request_id} className="p-4 border rounded shadow bg-white">
-              <p><strong>Block:</strong> {req.block}</p>
-              <p><strong>Room Type:</strong> {req.room_type}</p>
-              <p><strong>Owner:</strong> {req.owner_name}</p>
-              <p><strong>Phone:</strong> {req.owner_phone}</p>
-              <p><strong>Status:</strong> {req.status}</p>
-              {req.status === "Pending" && (
+          {requests.map((r) => (
+            <div key={r.request_id} className="border p-4 rounded-lg bg-white shadow">
+              <h3 className="font-bold text-lg mb-1">Block {r.block} - {r.room_type}</h3>
+              <p>Status: <b>{r.status}</b></p>
+              <p>Owner: {r.owner_first_name} {r.owner_last_name}</p>
+              <p>Email: {r.owner_email}</p>
+              <p>Phone: {r.owner_phone}</p>
+              <p className="text-sm mt-2 text-gray-500">
+                Sent on {new Date(r.created_at).toLocaleString()}
+              </p>
+
+              {r.status === "Pending" && (
                 <button
-                  className="mt-2 bg-red-500 text-white px-3 py-1 rounded"
-                  onClick={() => handleCancel(req.request_id)}
+                  onClick={() => handleCancel(r.request_id)}
+                  className="mt-3 bg-red-500 text-white px-3 py-1 rounded"
                 >
                   Cancel
                 </button>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      <h2 className="text-xl font-semibold mt-6 mb-2">Received Requests</h2>
-      {receivedRequests.length === 0 ? (
-        <p>No received requests yet.</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {receivedRequests.map((req) => (
-            <div key={req.request_id} className="p-4 border rounded shadow bg-white">
-              <p><strong>Name:</strong> {req.first_name} {req.last_name}</p>
-              <p><strong>Email:</strong> {req.email}</p>
-              <p><strong>Phone:</strong> {req.phone}</p>
-              <p><strong>Status:</strong> {req.status}</p>
-              {req.status === "Pending" && (
-                <div className="flex gap-2 mt-2">
-                  <button
-                    className="bg-green-500 text-white px-3 py-1 rounded"
-                    onClick={() => handleAccept(req.request_id)}
-                  >
-                    Accept
-                  </button>
-                  <button
-                    className="bg-gray-500 text-white px-3 py-1 rounded"
-                    onClick={() => handleReject(req.request_id)}
-                  >
-                    Reject
-                  </button>
-                </div>
               )}
             </div>
           ))}
