@@ -104,7 +104,7 @@ export default function CreateListing() {
         </label>
 
         <label className="block mb-4">
-          City:
+          Place:
           <input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="border p-2 w-full rounded" />
         </label>
 
